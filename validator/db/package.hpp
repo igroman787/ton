@@ -48,6 +48,7 @@ class Package {
 
  private:
   td::FileFd fd_;
+  std::string path_;
 };
 
 }  // namespace ton

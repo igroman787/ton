@@ -45,10 +45,11 @@ constexpr td::uint32 package_header_magic() {
 }
 }  // namespace
 
-Package::Package(td::FileFd fd) : fd_(std::move(fd)) {
+Package::Package(td::FileFd fd, std::string path) : fd_(std::move(fd)), path_(std::move(path)) {
 }
 
 td::Status Package::truncate(td::uint64 size) {
+  LOG(INFO) << "Truncate package " << path_;
   auto target_size = size + header_size();
   TRY_RESULT(current_size, fd_.get_size());
 
@@ -62,6 +63,7 @@ td::Status Package::truncate(td::uint64 size) {
 }
 
 td::uint64 Package::append(std::string filename, td::Slice data, bool sync) {
+  LOG(INFO) << "Append package " << path_;
   CHECK(data.size() <= max_data_size());
   CHECK(filename.size() <= max_filename_size());
   auto size = fd_.get_size().move_as_ok();
@@ -96,6 +98,7 @@ td::uint64 Package::size() const {
 }
 
 td::Result<std::pair<std::string, td::BufferSlice>> Package::read(td::uint64 offset) const {
+  LOG(INFO) << "Read package " << path_;
   offset += header_size();
 
   td::uint32 header[2];
@@ -127,6 +130,7 @@ td::Result<std::pair<std::string, td::BufferSlice>> Package::read(td::uint64 off
 }
 
 td::Result<td::uint64> Package::advance(td::uint64 offset) {
+  LOG(INFO) << "Advance package " << path_;
   offset += header_size();
 
   td::uint32 header[2];
@@ -156,6 +160,7 @@ td::Result<Package> Package::open(std::string path, bool read_only, bool create)
 
   TRY_RESULT(fd, td::FileFd::open(path, flags));
   TRY_RESULT(size, fd.get_size());
+  LOG(INFO) << "Open package " << path;
 
   if (size < header_size()) {
     if (!create) {
@@ -177,10 +182,11 @@ td::Result<Package> Package::open(std::string path, bool read_only, bool create)
       return td::Status::Error(ErrorCode::notready, "magic mismatch");
     }
   }
-  return Package{std::move(fd)};
+  return Package{std::move(fd), std::move(path)};
 }
 
 void Package::iterate(std::function<bool(std::string, td::BufferSlice, td::uint64)> func) {
+  LOG(INFO) << "Iterate package " << path_;
   td::uint64 p = 0;
 
   td::uint64 size = fd_.get_size().move_as_ok();
