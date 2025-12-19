@@ -28,7 +28,7 @@ class Package {
  public:
   static td::Result<Package> open(std::string path, bool read_only = false, bool create = false);
 
-  Package(td::FileFd fd);
+  Package(td::FileFd fd, std::string path);
   Package(Package &&p) = default;
   ~Package();
 
