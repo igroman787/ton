@@ -49,6 +49,12 @@ class Package {
  private:
   td::FileFd fd_;
   std::string path_;
+  mutable td::uint32 read_count_;
+  mutable td::uint32 append_count_;
+  mutable td::uint32 sync_count_;
+  mutable td::uint32 advance_count_;
+  mutable td::uint32 iterate_count_;
+  mutable td::uint32 truncate_count_;
 };
 
 }  // namespace ton
